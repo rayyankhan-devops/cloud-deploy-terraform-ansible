@@ -1,0 +1,84 @@
+---
+- name: "Deploy VibeGram Application"
+  hosts: all
+  become: true
+
+  vars:
+    repo_url: "https://github.com/rayyankhan-devops/vibegram.git"
+    app_dir: "/home/ubuntu/vibegram"
+    app_user: "ubuntu"
+
+  tasks:
+    - name: "Update apt cache and install Git, Docker, and Docker Compose v2"
+      ansible.builtin.apt:
+        name:
+          - git
+          - docker.io
+          - docker-compose-v2
+        state: present
+        update_cache: true
+      register: apt_install
+      retries: 6
+      delay: 10
+      until: apt_install is success
+
+    - name: "Ensure Docker service is started and enabled"
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: "Add user to docker group"
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        groups: docker
+        append: true
+
+    - name: "Clone VibeGram repository"
+      ansible.builtin.git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_dir }}"
+        version: main
+        force: true
+
+    - name: "Copy .env.example to .env"
+      ansible.builtin.copy:
+        src: "{{ app_dir }}/.env.example"
+        dest: "{{ app_dir }}/.env"
+        remote_src: true
+        force: false
+
+    - name: "Configure MongoDB kernel compatibility override (GLIBC_TUNABLES)"
+      ansible.builtin.copy:
+        dest: "{{ app_dir }}/docker-compose.override.yml"
+        content: |
+          services:
+            vibegram-db:
+              environment:
+                - GLIBC_TUNABLES=glibc.pthread.rseq=1
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: "0644"
+
+    - name: "Set proper ownership on application directory"
+      ansible.builtin.file:
+        path: "{{ app_dir }}"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        recurse: true
+
+    - name: "Start application with Docker Compose"
+      ansible.builtin.command:
+        cmd: docker compose up -d --build
+        chdir: "{{ app_dir }}"
+
+    - name: "Check running containers status"
+      ansible.builtin.command:
+        cmd: docker compose ps
+        chdir: "{{ app_dir }}"
+      register: docker_ps
+      changed_when: false
+
+    - name: "Display running containers"
+      ansible.builtin.debug:
+        var: docker_ps.stdout_lines

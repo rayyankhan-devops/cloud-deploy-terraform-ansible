@@ -1,0 +1,54 @@
+# ==============================================================================
+# Git Ignore Configuration for Terraform & Ansible Infrastructure Repository
+# ==============================================================================
+
+# Private Keys & Sensitive Files
+*.pem
+*.key
+*.pub
+id_rsa*
+id_ed25519*
+*.pfx
+*.pkcs12
+
+# Terraform State & Local Artifacts
+.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+terraform.tfstate.d/
+**/terraform.tfstate.d/
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
+# Terraform Variables (contains sensitive credentials/values)
+*.tfvars
+*.tfvars.json
+
+# Ansible Files & Retries
+*.retry
+.ansible/
+.ansible_tmp/
+ansible/inventories/host.ini
+!ansible/inventories/host.ini.example
+
+# OS Specific & Editor Artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
