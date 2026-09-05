@@ -24,22 +24,22 @@ flowchart TD
 
     subgraph AWS["AWS Cloud (us-east-1)"]
         subgraph VPC["Virtual Private Cloud (VPC)"]
-            SG["Security Group (22, 8000, 8080)"]
+            SG["Security Group (Ports 22, 8000, 8080)"]
             EC2["Ubuntu EC2 Instance (node-rayyan)"]
         end
     end
 
     subgraph AppStack["Docker Compose 3-Tier Stack"]
-        FE["vibegram-frontend (:8080)"]
-        BE["vibegram-backend (:8000)"]
-        DB["vibegram-db (MongoDB :27017)"]
+        FE["vibegram-frontend (Port 8080)"]
+        BE["vibegram-backend (Port 8000)"]
+        DB["vibegram-db (MongoDB Port 27017)"]
     end
 
     TF -->|1. Provisions| EC2
     TF -->|2. Writes Public IP| INV
     TF -->|3. Auto-scans Fingerprint| KH
     AN -->|4. Reads Target Host| INV
-    AN -->|5. Connects via SSH (aws-prac-key)| EC2
+    AN -->|5. Connects via SSH| EC2
     EC2 -->|6. Deploys Containers| AppStack
     BE --> DB
     FE --> BE
